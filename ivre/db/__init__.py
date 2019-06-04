@@ -2443,6 +2443,28 @@ def _mongodb_url2dbinfos(url):
             params)
 
 
+def _elastic_url2dbinfos(url):
+    userinfo = {}
+    if '@' in url.netloc:
+        username = url.netloc[:url.netloc.index('@')]
+        if ':' in username:
+            userinfo = dict(zip(["username", "password"],
+                                [unquote(val) for val in
+                                 username.split(':', 1)]))
+        else:
+            username = unquote(username)
+    else:
+        hostname = url.netloc
+    if not hostname:
+        hostname = None
+    dbname = url.path.lstrip('/')
+    if not dbname:
+        dbname = 'ivre'
+    params = dict(x.split('=', 1) if '=' in x else [x, None]
+                  for x in url.query.split('&') if x)
+    return (url.scheme,(hostname, dbname), params)
+
+
 def _neo4j_url2dbinfos(url):
     return (url.scheme, (url._replace(scheme='http').geturl(),), {})
 
@@ -2475,6 +2497,7 @@ class MetaDB(object):
         "neo4j": _neo4j_url2dbinfos,
         "maxmind": _maxmind_url2dbinfos,
         "sqlite": _sqlite_url2dbinfos,
+        "elastic": _elastic_url2dbinfos,
     }
 
     @classmethod
@@ -2495,6 +2518,12 @@ class MetaDB(object):
             self.db_types["passive"]["mongodb"] = MongoDBPassive
             self.db_types["agent"]["mongodb"] = MongoDBAgent
             self.db_types["view"]["mongodb"] = MongoDBView
+        try:
+            from ivre.db.elastic import ElasticDBView
+        except ImportError:
+            pass
+        else:
+            self.db_types["view"]["elastic"] = ElasticDBView
         try:
             from ivre.db.neo4j import Neo4jDBFlow
         except ImportError:
