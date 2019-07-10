@@ -2403,6 +2403,83 @@ class DBFlow(DB):
     """Backend-independent code to handle flows"""
 
 
+<<<<<<< HEAD
+=======
+def _mongodb_url2dbinfos(url):
+    userinfo = {}
+    if '@' in url.netloc:
+        username = url.netloc[:url.netloc.index('@')]
+        if ':' in username:
+            userinfo = dict(zip(["username", "password"],
+                                [unquote(val) for val in
+                                 username.split(':', 1)]))
+        else:
+            username = unquote(username)
+            if username == 'GSSAPI':
+                import krbV
+                userinfo = {
+                    'username': (krbV
+                                 .default_context()
+                                 .default_ccache()
+                                 .principal().name),
+                    'mechanism': 'GSSAPI'}
+            elif '@' in username:
+                userinfo = {'username': username,
+                            'mechanism': 'GSSAPI'}
+            else:
+                userinfo = {'username': username}
+        hostname = url.netloc[url.netloc.index('@') + 1:]
+    else:
+        hostname = url.netloc
+    if not hostname:
+        hostname = None
+    dbname = url.path.lstrip('/')
+    if not dbname:
+        dbname = 'ivre'
+    params = dict(x.split('=', 1) if '=' in x else [x, None]
+                  for x in url.query.split('&') if x)
+    params.update(userinfo)
+    return (url.scheme,
+            (hostname, dbname),
+            params)
+
+
+def _elastic_url2dbinfos(url):
+    userinfo = {}
+    if '@' in url.netloc:
+        username = url.netloc[:url.netloc.index('@')]
+        if ':' in username:
+            userinfo = dict(zip(["username", "password"],
+                                [unquote(val) for val in
+                                 username.split(':', 1)]))
+        else:
+            username = unquote(username)
+    else:
+        hostname = url.netloc
+    if not hostname:
+        hostname = None
+    dbname = url.path.lstrip('/')
+    if not dbname:
+        dbname = 'ivre'
+    params = dict(x.split('=', 1) if '=' in x else [x, None]
+                  for x in url.query.split('&') if x)
+    return (url.scheme,(hostname, dbname), params)
+
+
+def _neo4j_url2dbinfos(url):
+    return (url.scheme, (url._replace(scheme='http').geturl(),), {})
+
+
+def _maxmind_url2dbinfos(url):
+    return (url.scheme, (url.path,), {})
+
+
+def _sqlite_url2dbinfos(url):
+    # url.geturl() would remove two necessary '/' from url.
+    return (url.scheme, ("%s://%s" % (url.scheme, url.path),), {})
+
+
+>>>>>>> 155e77e11b7036415e91b92a4740248bc450c060
 class MetaDB(object):
 
     # Backend-specific purpose-specific sub-classes (e.g.,
