@@ -3523,6 +3523,8 @@ purposes to feed Elasticsearch view.
         view_count = 0
         # Count passive results
         self.assertEqual(RUN(["ivre", "db2view", "passive"])[0], 0)
+        if DATABASE == 'elastic':
+            time.sleep(1)
         ret, out, _ = RUN(["ivre", "view", "--count"])
         self.assertEqual(ret, 0)
         view_count = int(out)
@@ -3532,6 +3534,8 @@ purposes to feed Elasticsearch view.
                              stdin=open(os.devnull))[0], 0)
         # Count active results
         self.assertEqual(RUN(["ivre", "db2view", "nmap"])[0], 0)
+        if DATABASE == 'elastic':
+            time.sleep(1)
         ret, out, _ = RUN(["ivre", "view", "--count"])
         self.assertEqual(ret, 0)
         view_count = int(out)
@@ -3539,6 +3543,8 @@ purposes to feed Elasticsearch view.
         self.check_value("view_count_active", view_count)
         # Count merged results
         self.assertEqual(RUN(["ivre", "db2view", "passive"])[0], 0)
+        if DATABASE == 'elastic':
+            time.sleep(1)
         ret, out, _ = RUN(["ivre", "view", "--count"])
         self.assertEqual(ret, 0)
         view_count = int(out)
